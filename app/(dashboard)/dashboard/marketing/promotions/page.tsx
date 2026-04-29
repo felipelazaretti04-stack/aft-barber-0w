@@ -36,7 +36,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { promotions as initial } from "@/lib/mock-data-extra"
 import { services } from "@/lib/mock-data"
 import type { PromotionType } from "@/lib/types"
-import { formatDateTime } from "@/lib/format"
+import { formatDateTimeBR } from "@/lib/format"
 
 const typeMeta: Record<PromotionType, { label: string; icon: typeof Zap; color: string }> = {
   flash: { label: "Venda Rápida", icon: Zap, color: "bg-amber-500/10 text-amber-500" },
@@ -110,8 +110,8 @@ export default function PromotionsPage() {
                     </TableCell>
                     <TableCell><Badge variant="default">-{p.discount_pct}%</Badge></TableCell>
                     <TableCell className="text-xs">
-                      {formatDateTime(p.starts_at)} <br />
-                      até {formatDateTime(p.ends_at)}
+                      {formatDateTimeBR(p.starts_at)} <br />
+                      até {formatDateTimeBR(p.ends_at)}
                     </TableCell>
                     <TableCell className="text-sm">{svcs.length} serviço(s)</TableCell>
                     <TableCell>{p.uses}</TableCell>

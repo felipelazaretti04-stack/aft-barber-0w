@@ -37,7 +37,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { campaigns } from "@/lib/mock-data-extra"
 import type { Campaign, CampaignChannel } from "@/lib/types"
-import { formatDateTime } from "@/lib/format"
+import { formatDateTimeBR } from "@/lib/format"
 
 const channelMeta: Record<CampaignChannel, { label: string; icon: typeof Mail; color: string }> = {
   email: { label: "E-mail", icon: Mail, color: "text-blue-500" },
@@ -140,7 +140,7 @@ export default function CampaignsPage() {
                       )}
                     </TableCell>
                     <TableCell className="text-sm">
-                      {c.sent_at ? formatDateTime(c.sent_at) : c.scheduled_at ? formatDateTime(c.scheduled_at) : "—"}
+                      {c.sent_at ? formatDateTimeBR(c.sent_at) : c.scheduled_at ? formatDateTimeBR(c.scheduled_at) : "—"}
                     </TableCell>
                     <TableCell>
                       <DropdownMenu>
