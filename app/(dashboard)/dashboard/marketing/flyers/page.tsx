@@ -19,7 +19,7 @@ import { Input } from "@/components/ui/input"
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Textarea } from "@/components/ui/textarea"
 import { flyers, flyerTemplates } from "@/lib/mock-data-extra"
-import { formatDate } from "@/lib/format"
+import { formatDateBR } from "@/lib/format"
 import { cn } from "@/lib/utils"
 
 export default function FlyersPage() {
@@ -60,7 +60,7 @@ export default function FlyersPage() {
                   </div>
                   <CardContent className="p-3">
                     <p className="font-medium text-sm truncate">{f.name}</p>
-                    <p className="text-xs text-muted-foreground">{formatDate(f.created_at)}</p>
+                    <p className="text-xs text-muted-foreground">{formatDateBR(f.created_at)}</p>
                   </CardContent>
                 </Card>
               ))}
