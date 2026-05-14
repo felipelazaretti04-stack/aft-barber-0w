@@ -54,6 +54,19 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
+  // Se está logado e vai pro dashboard, verifica se tem tenant
+  if (user && pathname.startsWith('/dashboard')) {
+    const { data: tenantData } = await supabase.rpc('get_my_tenant')
+    const tenant = tenantData?.[0]
+
+    // Sem tenant ou onboarding incompleto -> redireciona
+    if (!tenant || !tenant.onboarding_completed_at) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/onboarding'
+      return NextResponse.redirect(url)
+    }
+  }
+
   // IMPORTANT: You *must* return the supabaseResponse object as it is.
   // If you're creating a new response object with NextResponse.next() make sure to:
   // 1. Pass the request in it, like so:
