@@ -5,6 +5,11 @@ export function formatBRL(value: number): string {
   }).format(value)
 }
 
+/** Recebe valor em centavos e retorna no formato R$ X,XX */
+export function formatCurrencyBR(cents: number): string {
+  return formatBRL((cents ?? 0) / 100)
+}
+
 export function formatPhone(phone: string): string {
   return phone
 }
