@@ -66,7 +66,7 @@ export function ManageBookingView({
     <main className="mx-auto max-w-2xl px-4 pb-24 pt-4">
       <div className="flex items-center justify-between py-2">
         <Button asChild variant="ghost" size="sm">
-          <Link href={`/b/${booking.tenant_slug}`}>
+          <Link href={`/app/${booking.tenant_slug}`}>
             <ArrowLeft className="mr-1.5 h-4 w-4" aria-hidden="true" />
             {booking.tenant_name}
           </Link>
@@ -154,7 +154,7 @@ export function ManageBookingView({
           </AlertDialog>
 
           <Button asChild variant="outline">
-            <Link href={`/b/${booking.tenant_slug}/agendar`}>
+            <Link href={`/app/${booking.tenant_slug}/agendar`}>
               Reagendar (criar novo)
             </Link>
           </Button>

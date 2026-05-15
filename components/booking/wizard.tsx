@@ -78,7 +78,7 @@ export function BookingWizard({
       {/* Header */}
       <div className="flex items-center justify-between gap-2 py-2">
         <Button asChild variant="ghost" size="sm">
-          <Link href={`/b/${tenant.slug}`}>
+          <Link href={`/app/${tenant.slug}`}>
             <ArrowLeft className="mr-1.5 h-4 w-4" aria-hidden="true" />
             {tenant.name}
           </Link>

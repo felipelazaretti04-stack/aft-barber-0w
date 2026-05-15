@@ -102,7 +102,7 @@ export function StepReview({ userEmail, onComplete }: Props) {
           <div className="flex justify-between">
             <span className="text-muted-foreground">Link</span>
             <span className="font-medium flex items-center gap-1">
-              barberpro.com/b/{business.slug}
+              barberpro.com/app/{business.slug}
               <ExternalLink className="h-3 w-3" />
             </span>
           </div>

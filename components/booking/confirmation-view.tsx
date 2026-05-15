@@ -34,7 +34,7 @@ export function ConfirmationView({
 
   const manageUrl =
     typeof window !== "undefined"
-      ? `${window.location.origin}/b/${booking.tenant_slug}/gerenciar/${token}`
+      ? `${window.location.origin}/app/${booking.tenant_slug}/gerenciar/${token}`
       : ""
 
   const title = `${booking.service_name ?? "Agendamento"} - ${booking.tenant_name}`
@@ -156,13 +156,13 @@ export function ConfirmationView({
           className="flex-1"
           style={{ background: "var(--tenant-primary)", color: "white" }}
         >
-          <Link href={`/b/${booking.tenant_slug}/gerenciar/${token}`}>
+          <Link href={`/app/${booking.tenant_slug}/gerenciar/${token}`}>
             <Settings2 className="mr-2 h-4 w-4" aria-hidden="true" />
             Gerenciar agendamento
           </Link>
         </Button>
         <Button asChild variant="ghost">
-          <Link href={`/b/${booking.tenant_slug}`}>
+          <Link href={`/app/${booking.tenant_slug}`}>
             <Home className="mr-2 h-4 w-4" aria-hidden="true" />
             Voltar
           </Link>

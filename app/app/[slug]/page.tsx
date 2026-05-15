@@ -122,7 +122,7 @@ export default async function TenantHome({ params }: Props) {
               className="w-full sm:w-auto"
               style={{ background: "var(--tenant-primary)", color: "white" }}
             >
-              <Link href={`/b/${tenant.slug}/agendar`}>
+              <Link href={`/app/${tenant.slug}/agendar`}>
                 <CalendarClock className="mr-2 h-4 w-4" aria-hidden="true" />
                 Agendar horário
               </Link>
@@ -151,7 +151,7 @@ export default async function TenantHome({ params }: Props) {
             {services.map((s) => (
               <Link
                 key={s.id}
-                href={`/b/${tenant.slug}/agendar?service=${s.id}`}
+                href={`/app/${tenant.slug}/agendar?service=${s.id}`}
                 className="group block"
               >
                 <Card className="transition-shadow hover:shadow-md">

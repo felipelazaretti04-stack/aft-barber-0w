@@ -41,7 +41,7 @@ export function DashboardSidebarClient({ tenant, user }: DashboardSidebarClientP
   const router = useRouter()
 
   const handleCopyLink = () => {
-    const url = `${typeof window !== "undefined" ? window.location.origin : ""}/b/${tenant?.slug}`
+    const url = `${typeof window !== "undefined" ? window.location.origin : ""}/app/${tenant?.slug}`
     navigator.clipboard.writeText(url)
     toast.success("Link copiado para a área de transferência")
   }

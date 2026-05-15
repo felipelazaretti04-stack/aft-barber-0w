@@ -102,7 +102,7 @@ export function StepBusiness() {
           <Label htmlFor="slug">Link de Agendamento *</Label>
           <div className="mt-1 flex items-center gap-2">
             <span className="text-sm text-muted-foreground whitespace-nowrap">
-              barberpro.com/b/
+              barberpro.com/app/
             </span>
             <div className="relative flex-1">
               <Input

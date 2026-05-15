@@ -50,7 +50,7 @@ export function StepConfirm({ tenant }: { tenant: PublicTenant }) {
     }
     toast.success("Agendamento criado!")
     reset()
-    router.push(`/b/${tenant.slug}/confirmacao/${res.bookingId}?token=${res.manageToken}`)
+    router.push(`/app/${tenant.slug}/confirmacao/${res.bookingId}?token=${res.manageToken}`)
   }
 
   return (
