@@ -60,7 +60,7 @@ export async function updateSession(request: NextRequest) {
     const tenant = tenantData?.[0]
 
     // Sem tenant ou onboarding incompleto -> redireciona
-    if (!tenant || !tenant.onboarding_completed_at) {
+    if (!tenant || !tenant.out_onboarding_completed_at) {
       const url = request.nextUrl.clone()
       url.pathname = '/onboarding'
       return NextResponse.redirect(url)

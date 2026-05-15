@@ -72,14 +72,14 @@ export async function getCurrentTenant(): Promise<DashboardTenant | null> {
   const { data: planData } = await supabase
     .from('plans')
     .select('name')
-    .eq('slug', data.plan_slug)
+    .eq('slug', data.out_plan_slug)
     .single()
   
   return {
-    id: data.id,
-    name: data.name,
-    slug: data.slug,
-    plan_slug: data.plan_slug || 'free',
+    id: data.out_tenant_id,
+    name: data.out_tenant_name,
+    slug: data.out_tenant_slug,
+    plan_slug: data.out_plan_slug || 'free',
     plan_name: planData?.name || 'Free',
     trial_ends_at: null, // TODO: buscar do tenants
     status: 'trial'

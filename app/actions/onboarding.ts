@@ -71,8 +71,8 @@ export async function completeOnboarding(
 
   return {
     success: true,
-    tenantId: result.tenant_id,
-    slug: result.tenant_slug,
+    tenantId: result.out_tenant_id,
+    slug: result.out_tenant_slug,
   }
 }
 
