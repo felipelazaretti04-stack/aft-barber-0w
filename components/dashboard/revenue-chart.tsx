@@ -3,17 +3,18 @@
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis } from "recharts"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 
-const data = [
-  { day: "Qua", revenue: 980 },
-  { day: "Qui", revenue: 1240 },
-  { day: "Sex", revenue: 1850 },
-  { day: "Sáb", revenue: 2100 },
-  { day: "Dom", revenue: 0 },
-  { day: "Seg", revenue: 1100 },
-  { day: "Ter", revenue: 1250 },
-]
+interface RevenueChartProps {
+  data?: { date: string; revenue: number }[]
+}
 
-export function RevenueChart() {
+const WEEKDAYS_PT = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"]
+
+export function RevenueChart({ data = [] }: RevenueChartProps) {
+  const chartData = data.map(d => ({
+    day: WEEKDAYS_PT[new Date(d.date + "T12:00:00").getDay()],
+    revenue: d.revenue
+  }))
+
   return (
     <ChartContainer
       config={{
@@ -25,7 +26,7 @@ export function RevenueChart() {
       className="h-[240px] w-full"
     >
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{ top: 10, right: 10, bottom: 0, left: 0 }}>
+        <BarChart data={chartData} margin={{ top: 10, right: 10, bottom: 0, left: 0 }}>
           <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-border" />
           <XAxis dataKey="day" tickLine={false} axisLine={false} className="text-xs" />
           <YAxis
