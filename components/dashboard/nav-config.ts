@@ -1,6 +1,7 @@
 import {
   Armchair,
   BarChart3,
+  Bell,
   Calendar,
   CalendarOff,
   CreditCard,
@@ -42,6 +43,7 @@ export const navItems: NavItem[] = [
 
   { label: "Relatórios", href: "/dashboard/reports", icon: BarChart3, group: "Gestão" },
   { label: "Plano", href: "/dashboard/plan", icon: CreditCard, group: "Gestão" },
+  { label: "Notificações", href: "/dashboard/configuracoes/notificacoes", icon: Bell, group: "Gestão" },
   { label: "Configurações", href: "/dashboard/settings", icon: Settings, group: "Gestão" },
 ]
 

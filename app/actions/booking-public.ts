@@ -2,6 +2,8 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { createBookingSchema, customerSchema } from "@/lib/booking/schema"
+import { sendForBooking, DEFAULT_NOTIFICATION_SETTINGS } from "@/lib/notifications"
+import { formatCurrencyBR } from "@/lib/format"
 
 export interface PublicTenant {
   id: string
@@ -171,7 +173,39 @@ export async function createPublicBooking(input: unknown): Promise<CreateBooking
     return { ok: false, error: error.message }
   }
   const row = Array.isArray(data) ? data[0] : data
-  return { ok: true, bookingId: row.booking_id, manageToken: row.manage_token }
+  const bookingId: string = row.booking_id
+  const manageToken: string = row.manage_token
+
+  // Dispara notificação booking_confirmed de forma assíncrona (não bloqueia resposta)
+  void (async () => {
+    try {
+      const { data: settingsRow } = await supabase
+        .from("tenant_settings")
+        .select("settings")
+        .eq("tenant_id", (await supabase.from("tenants").select("id").eq("slug", tenantSlug).single()).data?.id ?? "")
+        .maybeSingle()
+
+      const tenantSettings = settingsRow?.settings?.notifications ?? DEFAULT_NOTIFICATION_SETTINGS
+
+      const manageUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/app/${tenantSlug}/gerenciar/${manageToken}`
+
+      await sendForBooking(
+        "booking_confirmed",
+        tenantSettings,
+        { phone: cust.data.phone, email: cust.data.email },
+        {
+          clientName: cust.data.name,
+          serviceName: parsed.data.serviceId, // ID temporário — substituir por nome real se necessário
+          manageUrl,
+          totalFormatted: undefined, // preenchido após lookup do serviço
+        },
+      )
+    } catch (e) {
+      console.log("[v0] booking_confirmed notification failed:", e)
+    }
+  })()
+
+  return { ok: true, bookingId, manageToken }
 }
 
 export interface BookingByToken {
