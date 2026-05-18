@@ -31,6 +31,7 @@ interface Props {
   barbers: PublicBarber[]
   initialServiceId?: string
   initialBarberId?: string
+  initialSlot?: string
 }
 
 export function BookingWizard({
@@ -39,9 +40,19 @@ export function BookingWizard({
   barbers,
   initialServiceId,
   initialBarberId,
+  initialSlot,
 }: Props) {
-  const { step, setStep, setTenantSlug, service, setService, setBarber, tenantSlug, reset } =
-    useBookingStore()
+  const {
+    step,
+    setStep,
+    setTenantSlug,
+    service,
+    setService,
+    setBarber,
+    setSlot,
+    tenantSlug,
+    reset,
+  } = useBookingStore()
 
   // Sincroniza tenant e pré-seleção via querystring
   useEffect(() => {
@@ -52,24 +63,49 @@ export function BookingWizard({
   }, [tenant.slug, tenantSlug, setTenantSlug, reset])
 
   useEffect(() => {
-    if (initialServiceId && !service) {
+    let targetStep: 1 | 2 | 3 = 1
+    let resolvedService: typeof service = null
+    let resolvedBarber: { id: string | null; name: string; avatar_url?: string | null } | null = null
+
+    if (initialServiceId) {
       const s = services.find((x) => x.id === initialServiceId)
       if (s) {
-        setService({
+        resolvedService = {
           id: s.id,
           name: s.name,
           duration_min: s.duration_min,
           price_cents: s.price_cents,
-        })
-        setStep(2)
+        }
+        setService(resolvedService)
+        targetStep = 2
       }
     }
+
     if (initialBarberId) {
       const b = barbers.find((x) => x.id === initialBarberId)
-      if (b) setBarber({ id: b.id, name: b.name, avatar_url: b.avatar_url })
+      if (b) {
+        resolvedBarber = { id: b.id, name: b.name, avatar_url: b.avatar_url }
+        setBarber(resolvedBarber)
+        // Se serviço também foi pré-selecionado, pula direto para data/hora
+        if (resolvedService) targetStep = 3
+      }
     }
+
+    // Pré-seleciona slot se vier da página do profissional
+    if (initialSlot && resolvedBarber?.id) {
+      const slotStart = initialSlot
+      const durationMin = resolvedService?.duration_min ?? 30
+      const slotEnd = new Date(
+        new Date(slotStart).getTime() + durationMin * 60_000,
+      ).toISOString()
+      setSlot({ start: slotStart, end: slotEnd, barberId: resolvedBarber.id })
+      if (resolvedService) targetStep = 3
+    }
+
+    if (targetStep > 1) setStep(targetStep)
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialServiceId, initialBarberId])
+  }, [initialServiceId, initialBarberId, initialSlot])
 
   const progress = (step / STEPS.length) * 100
 

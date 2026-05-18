@@ -149,39 +149,44 @@ export default async function TenantHome({ params }: Props) {
         ) : (
           <div className="grid gap-3">
             {services.map((s) => (
-              <Link
-                key={s.id}
-                href={`/app/${tenant.slug}/agendar?service=${s.id}`}
-                className="group block"
-              >
-                <Card className="transition-shadow hover:shadow-md">
-                  <CardContent className="flex items-center gap-4 p-4">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="truncate font-medium">{s.name}</h3>
-                        {s.category ? (
-                          <Badge variant="secondary" className="text-xs">
-                            {s.category}
-                          </Badge>
-                        ) : null}
-                      </div>
-                      {s.description ? (
-                        <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
-                          {s.description}
-                        </p>
+              <Card key={s.id} className="transition-shadow hover:shadow-md">
+                <CardContent className="flex items-center gap-4 p-4">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Link
+                        href={`/app/${tenant.slug}/servicos/${s.id}`}
+                        className="truncate font-medium hover:underline"
+                      >
+                        {s.name}
+                      </Link>
+                      {s.category ? (
+                        <Badge variant="secondary" className="text-xs">
+                          {s.category}
+                        </Badge>
                       ) : null}
-                      <div className="mt-2 flex items-center gap-3 text-sm">
-                        <span className="text-muted-foreground">{s.duration_min} min</span>
-                        <span className="font-semibold">{formatCurrencyBR(s.price_cents)}</span>
-                      </div>
                     </div>
+                    {s.description ? (
+                      <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+                        {s.description}
+                      </p>
+                    ) : null}
+                    <div className="mt-2 flex items-center gap-3 text-sm">
+                      <span className="text-muted-foreground">{s.duration_min} min</span>
+                      <span className="font-semibold">{formatCurrencyBR(s.price_cents)}</span>
+                    </div>
+                  </div>
+                  <Link
+                    href={`/app/${tenant.slug}/agendar?serviceId=${s.id}`}
+                    className="shrink-0"
+                    aria-label={`Agendar ${s.name}`}
+                  >
                     <ArrowRight
-                      className="h-5 w-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5"
+                      className="h-5 w-5 text-muted-foreground transition-transform hover:translate-x-0.5"
                       aria-hidden="true"
                     />
-                  </CardContent>
-                </Card>
-              </Link>
+                  </Link>
+                </CardContent>
+              </Card>
             ))}
           </div>
         )}
@@ -193,28 +198,32 @@ export default async function TenantHome({ params }: Props) {
           <h2 className="mb-4 text-lg font-semibold">Profissionais</h2>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {barbers.map((b) => (
-              <Card key={b.id}>
-                <CardContent className="flex flex-col items-center p-4 text-center">
-                  <div className="relative h-16 w-16 overflow-hidden rounded-full bg-muted">
-                    {b.avatar_url ? (
-                      <Image
-                        src={b.avatar_url || "/placeholder.svg"}
-                        alt={b.name}
-                        fill
-                        className="object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-muted-foreground">
-                        {b.name.slice(0, 2).toUpperCase()}
-                      </div>
-                    )}
-                  </div>
-                  <p className="mt-2 truncate text-sm font-medium">{b.name}</p>
-                  {b.specialties?.[0] ? (
-                    <p className="truncate text-xs text-muted-foreground">{b.specialties[0]}</p>
-                  ) : null}
-                </CardContent>
-              </Card>
+              <Link key={b.id} href={`/app/${tenant.slug}/equipe/${b.id}`} className="group">
+                <Card className="transition-shadow hover:shadow-md">
+                  <CardContent className="flex flex-col items-center p-4 text-center">
+                    <div className="relative h-16 w-16 overflow-hidden rounded-full bg-muted">
+                      {b.avatar_url ? (
+                        <Image
+                          src={b.avatar_url || "/placeholder.svg"}
+                          alt={b.name}
+                          fill
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-muted-foreground">
+                          {b.name.slice(0, 2).toUpperCase()}
+                        </div>
+                      )}
+                    </div>
+                    <p className="mt-2 truncate text-sm font-medium group-hover:underline">
+                      {b.name}
+                    </p>
+                    {b.specialties?.[0] ? (
+                      <p className="truncate text-xs text-muted-foreground">{b.specialties[0]}</p>
+                    ) : null}
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
           </div>
         </section>

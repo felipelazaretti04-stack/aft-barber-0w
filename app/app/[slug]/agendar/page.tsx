@@ -19,6 +19,12 @@ export default async function BookingPage({ params, searchParams }: Props) {
   const tenant = await getTenantBySlug(slug)
   if (!tenant) notFound()
 
+  // Aceita serviceId (novo) ou service (legado)
+  const initialServiceId = sp.serviceId ?? sp.service
+  // Aceita profId (novo) ou barber (legado)
+  const initialBarberId = sp.profId ?? sp.barber
+  const initialSlot = sp.slot
+
   const [services, barbers] = await Promise.all([
     getPublicServices(tenant.id),
     getPublicBarbers(tenant.id),
@@ -29,8 +35,9 @@ export default async function BookingPage({ params, searchParams }: Props) {
       tenant={tenant}
       services={services}
       barbers={barbers}
-      initialServiceId={sp.service}
-      initialBarberId={sp.barber}
+      initialServiceId={initialServiceId}
+      initialBarberId={initialBarberId}
+      initialSlot={initialSlot}
     />
   )
 }

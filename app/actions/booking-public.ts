@@ -203,6 +203,107 @@ export async function getBookingByToken(token: string): Promise<BookingByToken |
   return (row ?? null) as BookingByToken | null
 }
 
+export interface ServiceDetail extends PublicService {
+  barbers: PublicBarber[]
+}
+
+export async function getServiceById(
+  serviceId: string,
+  tenantId: string,
+): Promise<ServiceDetail | null> {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from("services")
+    .select("id, name, description, duration_min, price_cents, category, image_url")
+    .eq("id", serviceId)
+    .eq("tenant_id", tenantId)
+    .eq("active", true)
+    .maybeSingle()
+
+  if (error || !data) return null
+
+  const barbers = await getPublicBarbers(tenantId, serviceId)
+  return { ...(data as PublicService), barbers }
+}
+
+export interface BarberDetail extends PublicBarber {
+  services: PublicService[]
+  nextSlots: SlotRow[]
+}
+
+export async function getBarberById(
+  barberId: string,
+  tenantId: string,
+): Promise<BarberDetail | null> {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from("barbers")
+    .select(
+      "id, name, bio, avatar_url, specialties, barber_services(service_id)",
+    )
+    .eq("id", barberId)
+    .eq("tenant_id", tenantId)
+    .eq("active", true)
+    .maybeSingle()
+
+  if (error || !data) return null
+
+  const row = data as PublicBarber & { barber_services: { service_id: string }[] }
+  const serviceIds = (row.barber_services ?? []).map((s) => s.service_id)
+
+  let services: PublicService[] = []
+  if (serviceIds.length > 0) {
+    const { data: svcData } = await supabase
+      .from("services")
+      .select("id, name, description, duration_min, price_cents, category, image_url")
+      .in("id", serviceIds)
+      .eq("active", true)
+      .order("name")
+    services = (svcData ?? []) as PublicService[]
+  }
+
+  // Próximos slots: primeiros 3 dias com disponibilidade nos próximos 7 dias
+  const { data: tenant } = await supabase
+    .from("tenants")
+    .select("timezone")
+    .eq("id", tenantId)
+    .single()
+  const tz = tenant?.timezone ?? "America/Sao_Paulo"
+
+  const today = new Date(
+    new Date().toLocaleDateString("en-CA", { timeZone: tz }),
+  )
+  const nextSlots: SlotRow[] = []
+  const firstService = services[0]
+  if (firstService) {
+    for (let i = 0; i < 7 && nextSlots.length < 6; i++) {
+      const d = new Date(today)
+      d.setDate(d.getDate() + i)
+      const dateStr = d.toISOString().slice(0, 10)
+      const { data: slots } = await supabase.rpc("get_available_slots", {
+        p_tenant_id: tenantId,
+        p_service_id: firstService.id,
+        p_barber_id: barberId,
+        p_date: dateStr,
+      })
+      const available = ((slots ?? []) as SlotRow[]).filter(
+        (s) => s.barber_id === barberId,
+      )
+      nextSlots.push(...available.slice(0, 6 - nextSlots.length))
+    }
+  }
+
+  return {
+    id: row.id,
+    name: row.name,
+    bio: row.bio,
+    avatar_url: row.avatar_url,
+    specialties: row.specialties ?? [],
+    services,
+    nextSlots,
+  }
+}
+
 export async function cancelBookingByToken(token: string): Promise<{ ok: boolean; error?: string }> {
   const supabase = await createClient()
   const { error } = await supabase.rpc("cancel_booking_by_token", { p_token: token })
