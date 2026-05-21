@@ -67,22 +67,25 @@ export async function getCurrentTenant(): Promise<DashboardTenant | null> {
     .single()
   
   if (error || !data) return null
+
+  const row = data as Record<string, unknown>
+  const planSlug = (row.out_plan_slug as string) || 'starter'
   
   // Buscar nome do plano
   const { data: planData } = await supabase
     .from('plans')
     .select('name')
-    .eq('slug', data.out_plan_slug)
+    .eq('slug', planSlug)
     .single()
   
   return {
-    id: data.out_tenant_id,
-    name: data.out_tenant_name,
-    slug: data.out_tenant_slug,
-    plan_slug: data.out_plan_slug || 'free',
-    plan_name: planData?.name || 'Free',
-    trial_ends_at: null, // TODO: buscar do tenants
-    status: 'trial'
+    id: row.out_tenant_id as string,
+    name: row.out_tenant_name as string,
+    slug: row.out_tenant_slug as string,
+    plan_slug: planSlug,
+    plan_name: planData?.name || 'Starter',
+    trial_ends_at: null,
+    status: 'trialing'
   }
 }
 

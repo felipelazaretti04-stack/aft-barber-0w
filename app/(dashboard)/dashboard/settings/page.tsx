@@ -304,12 +304,12 @@ export default function SettingsPage() {
                               className="w-28"
                             />
                           </div>
-                          {daySchedule.lunch_start && (
+                          {"lunch_start" in daySchedule && (daySchedule as { lunch_start?: string }).lunch_start && (
                             <div className="flex items-center gap-2 text-sm text-muted-foreground">
                               <span>Intervalo:</span>
                               <Input
                                 type="time"
-                                value={daySchedule.lunch_start}
+                                value={(daySchedule as { lunch_start?: string }).lunch_start ?? ""}
                                 onChange={(e) =>
                                   setSchedule((prev) => ({
                                     ...prev,
@@ -321,7 +321,7 @@ export default function SettingsPage() {
                               <span>-</span>
                               <Input
                                 type="time"
-                                value={daySchedule.lunch_end}
+                                value={(daySchedule as { lunch_end?: string }).lunch_end ?? ""}
                                 onChange={(e) =>
                                   setSchedule((prev) => ({
                                     ...prev,

@@ -44,23 +44,8 @@ import {
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { formatBRL, formatDateBR } from "@/lib/format"
-import { createCheckoutAction, cancelSubscriptionAction } from "@/app/actions/billing"
+import { createCheckoutAction, cancelSubscriptionAction, type BillingInfo } from "@/app/actions/billing"
 import { useSearchParams } from "next/navigation"
-
-interface BillingInfo {
-  out_plan_slug: string
-  out_plan_name: string
-  out_price_cents: number
-  out_status: string
-  out_trial_ends_at: string | null
-  out_current_period_end: string | null
-  out_cancel_at_period_end: boolean
-  out_mp_subscription_id: string | null
-  out_barbers_count: number
-  out_barbers_limit: number | null
-  out_services_count: number
-  out_services_limit: number | null
-}
 
 interface Plan {
   id: string

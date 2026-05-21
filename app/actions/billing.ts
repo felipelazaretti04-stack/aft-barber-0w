@@ -14,6 +14,28 @@ import { PLAN_META } from "@/lib/features"
 // ----------------------------------------------------------------
 // Helpers
 // ----------------------------------------------------------------
+export interface BillingInfo {
+  out_plan_slug: string
+  out_plan_name: string
+  out_price_cents: number
+  out_status: string
+  out_trial_ends_at: string | null
+  out_current_period_end: string | null
+  out_cancel_at_period_end: boolean
+  out_mp_subscription_id: string | null
+  out_barbers_count: number
+  out_barbers_limit: number | null
+  out_services_count: number
+  out_services_limit: number | null
+}
+
+interface TenantRow {
+  out_tenant_id: string
+  out_tenant_slug: string
+  out_tenant_name: string
+  out_plan_slug: string
+}
+
 async function requireTenant() {
   const supabase = await createClient()
   const {
@@ -24,7 +46,7 @@ async function requireTenant() {
   const { data } = await supabase.rpc("get_my_tenant").single()
   if (!data) throw new Error("Tenant não encontrado")
 
-  return { supabase, user, tenant: data }
+  return { supabase, user, tenant: data as unknown as TenantRow }
 }
 
 // ----------------------------------------------------------------
@@ -104,8 +126,10 @@ export async function getBillingInfoAction() {
   } = await supabase.auth.getUser()
   if (!user) return null
 
-  const { data: tenantRow } = await supabase.rpc("get_my_tenant").single()
-  if (!tenantRow) return null
+  const { data: tenantRaw } = await supabase.rpc("get_my_tenant").single()
+  if (!tenantRaw) return null
+
+  const tenantRow = tenantRaw as unknown as TenantRow
 
   const { data: billing } = await supabase
     .rpc("get_billing_info", { p_tenant_id: tenantRow.out_tenant_id })
@@ -126,7 +150,7 @@ export async function getBillingInfoAction() {
 
   return {
     tenantId: tenantRow.out_tenant_id,
-    billing,
+    billing: billing as BillingInfo | null,
     plans: plans ?? [],
     invoices: invoices ?? [],
   }

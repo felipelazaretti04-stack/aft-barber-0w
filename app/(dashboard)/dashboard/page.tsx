@@ -155,7 +155,7 @@ export default async function DashboardPage() {
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-medium tabular-nums">{formatTimeBR(apt.starts_at)}</p>
-                      <AppointmentStatusBadge status={apt.status} className="mt-1" />
+                      <AppointmentStatusBadge status={apt.status as import("@/lib/types").AppointmentStatus} className="mt-1" />
                     </div>
                   </li>
                 ))}
