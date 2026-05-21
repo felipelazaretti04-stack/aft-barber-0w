@@ -7,10 +7,12 @@ import { StepBusiness } from "./step-business"
 import { StepServices } from "./step-services"
 import { StepSchedules } from "./step-schedules"
 import { StepReview } from "./step-review"
+import { StepPlanSelector } from "./plan-selector"
 import { cn } from "@/lib/utils"
-import { Building2, Scissors, Clock, CheckCircle } from "lucide-react"
+import { Building2, Scissors, Clock, CheckCircle, CreditCard } from "lucide-react"
 
 const STEPS: { key: OnboardingStep; label: string; icon: React.ElementType }[] = [
+  { key: "plan", label: "Plano", icon: CreditCard },
   { key: "business", label: "Negócio", icon: Building2 },
   { key: "services", label: "Serviços", icon: Scissors },
   { key: "schedules", label: "Horários", icon: Clock },
@@ -25,21 +27,25 @@ interface Props {
 
 export function OnboardingWizard({ planSlug, userName, userEmail }: Props) {
   const router = useRouter()
-  const { step, setPlan, setBarberName, barberName } = useOnboardingStore()
+  const { step, setStep, setPlan, setBarberName, barberName } = useOnboardingStore()
 
   useEffect(() => {
-    setPlan(planSlug)
+    // Se veio da query com plano pré-selecionado, salva e pula o step de plano
+    if (planSlug && planSlug !== "free" && planSlug !== "") {
+      setPlan(planSlug)
+      if (step === "plan") setStep("business")
+    }
     if (!barberName && userName) {
       setBarberName(userName)
     }
-  }, [planSlug, userName, setPlan, setBarberName, barberName])
+  }, [planSlug, userName, setPlan, setStep, setBarberName, barberName, step])
 
   const currentIndex = STEPS.findIndex((s) => s.key === step)
 
   const handleComplete = (slug: string) => {
-    // Limpa store e redireciona
+    // Limpa store e redireciona para cadastro de cartao
     useOnboardingStore.getState().reset()
-    router.push(`/dashboard?welcome=1&slug=${slug}`)
+    router.push(`/onboarding/cartao`)
   }
 
   return (
@@ -104,6 +110,9 @@ export function OnboardingWizard({ planSlug, userName, userEmail }: Props) {
 
       {/* Step Content */}
       <div className="rounded-xl border bg-card p-6 shadow-sm">
+        {step === "plan" && (
+          <StepPlanSelector onNext={() => useOnboardingStore.getState().setStep("business")} />
+        )}
         {step === "business" && <StepBusiness />}
         {step === "services" && <StepServices />}
         {step === "schedules" && <StepSchedules userName={userName} />}

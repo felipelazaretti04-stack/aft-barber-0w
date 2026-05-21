@@ -19,7 +19,7 @@ function SignUpForm() {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
   const params = useSearchParams()
-  const plan = params.get("plan") || "free"
+  const plan = params.get("plan") || "starter"
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -39,7 +39,7 @@ function SignUpForm() {
         password,
         options: {
           data: { full_name: fullName, plan_slug: plan },
-          emailRedirectTo: `${window.location.origin}/auth/callback?next=/onboarding`,
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=/onboarding%3Fplan%3D${plan}`,
         },
       })
       if (error) throw error
@@ -62,7 +62,14 @@ function SignUpForm() {
           <CardHeader>
             <CardTitle className="text-2xl">Criar conta</CardTitle>
             <CardDescription>
-              Plano selecionado: <span className="font-medium capitalize text-foreground">{plan}</span>
+              Plano selecionado:{" "}
+              <span className="font-semibold capitalize text-foreground">
+                {plan === "starter" ? "Starter" : plan === "pro" ? "Pro" : plan === "premium" ? "Premium" : plan}
+              </span>
+              {" — "}
+              <Link href="/auth/sign-up" className="underline-offset-4 hover:underline">
+                alterar
+              </Link>
             </CardDescription>
           </CardHeader>
           <CardContent>

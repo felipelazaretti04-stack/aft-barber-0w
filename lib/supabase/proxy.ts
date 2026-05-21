@@ -54,17 +54,63 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Se está logado e vai pro dashboard, verifica se tem tenant
-  if (user && pathname.startsWith('/dashboard')) {
-    const { data: tenantData } = await supabase.rpc('get_my_tenant')
-    const tenant = tenantData?.[0]
+  // Rotas de onboarding: cartao e sucesso passam direto
+  if (user && pathname.startsWith('/onboarding')) {
+    if (
+      pathname === '/onboarding/cartao' ||
+      pathname === '/onboarding/sucesso'
+    ) {
+      return supabaseResponse
+    }
+  }
 
-    // Sem tenant ou onboarding incompleto -> redireciona
-    if (!tenant || !tenant.out_onboarding_completed_at) {
+  // Se está logado e vai pro dashboard, checa access_state
+  if (user && pathname.startsWith('/dashboard')) {
+    const { data: accessRows } = await supabase.rpc('check_tenant_access')
+    const access = accessRows?.[0]
+    const accessState: string = access?.out_access_state ?? 'no_tenant'
+
+    if (accessState === 'no_tenant') {
       const url = request.nextUrl.clone()
       url.pathname = '/onboarding'
       return NextResponse.redirect(url)
     }
+
+    if (accessState === 'pending_payment') {
+      if (pathname !== '/dashboard/plan') {
+        const url = request.nextUrl.clone()
+        url.pathname = '/dashboard/plan'
+        url.searchParams.set('reason', 'pending_payment')
+        return NextResponse.redirect(url)
+      }
+      return supabaseResponse
+    }
+
+    if (accessState === 'blocked') {
+      if (pathname !== '/dashboard/plan') {
+        const url = request.nextUrl.clone()
+        url.pathname = '/dashboard/plan'
+        url.searchParams.set('reason', 'blocked')
+        return NextResponse.redirect(url)
+      }
+      return supabaseResponse
+    }
+
+    if (accessState === 'grace') {
+      // Acesso liberado — seta header para o layout exibir banner amarelo
+      const graceResponse = NextResponse.next({ request })
+      supabaseResponse.cookies.getAll().forEach(({ name, value, ...opts }) =>
+        graceResponse.cookies.set(name, value, opts),
+      )
+      graceResponse.headers.set('x-tenant-grace', 'true')
+      if (access?.out_grace_ends_at) {
+        graceResponse.headers.set('x-tenant-grace-ends', String(access.out_grace_ends_at))
+      }
+      return graceResponse
+    }
+
+    // 'ok' → acesso normal
+    return supabaseResponse
   }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is.

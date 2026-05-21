@@ -6,7 +6,10 @@ import {
   getOrCreateMpPlan,
   createCheckoutUrl,
   cancelMpSubscription,
+  createPreapproval,
+  getPreapproval,
 } from "@/lib/mercadopago"
+import { PLAN_META } from "@/lib/features"
 
 // ----------------------------------------------------------------
 // Helpers
@@ -126,5 +129,61 @@ export async function getBillingInfoAction() {
     billing,
     plans: plans ?? [],
     invoices: invoices ?? [],
+  }
+}
+
+// ----------------------------------------------------------------
+// Action: retorna (ou recria) o init_point do preapproval do tenant
+// Usado pela página /onboarding/cartao
+// ----------------------------------------------------------------
+export async function createCheckoutFromTenantAction(
+  tenantId: string,
+  payerEmail: string,
+): Promise<{ initPoint?: string; error?: string }> {
+  try {
+    const supabase = await createClient()
+
+    const { data: tenantRow } = await supabase
+      .from("tenants")
+      .select("mp_preapproval_id, plan_id, plans(name, price_cents, slug)")
+      .eq("id", tenantId)
+      .single()
+
+    const planName  = (tenantRow?.plans as { name?: string } | null)?.name ?? "Starter"
+    const priceCents = (tenantRow?.plans as { price_cents?: number } | null)?.price_cents ?? 7990
+    const planSlug  = (tenantRow?.plans as { slug?: string } | null)?.slug ?? "starter"
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
+
+    // Tenta reutilizar preapproval existente
+    if (tenantRow?.mp_preapproval_id) {
+      try {
+        const existing = await getPreapproval(tenantRow.mp_preapproval_id)
+        if (existing.status === "pending" && existing.init_point) {
+          return { initPoint: existing.init_point }
+        }
+      } catch {
+        // preapproval expirado — recria abaixo
+      }
+    }
+
+    // Cria novo preapproval
+    const preapproval = await createPreapproval({
+      tenantId,
+      planSlug,
+      planName,
+      amountCents: priceCents,
+      payerEmail,
+      backUrl: `${appUrl}/onboarding/sucesso`,
+    })
+
+    await supabase
+      .from("tenants")
+      .update({ mp_preapproval_id: preapproval.id })
+      .eq("id", tenantId)
+
+    return { initPoint: preapproval.init_point }
+  } catch (err) {
+    console.error("[v0] createCheckoutFromTenantAction error:", err)
+    return { error: "Erro ao gerar link de pagamento. Tente novamente." }
   }
 }

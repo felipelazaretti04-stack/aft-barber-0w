@@ -127,6 +127,73 @@ export async function getMpSubscription(subscriptionId: string): Promise<MpSubsc
   return res.json() as Promise<MpSubscription>
 }
 
+export interface MpPreapproval {
+  id: string
+  status: string // 'authorized' | 'pending' | 'cancelled' | 'paused'
+  init_point: string
+  external_reference: string | null
+  payer_email: string
+  preapproval_plan_id: string | null
+  auto_recurring: {
+    transaction_amount: number
+    currency_id: string
+    start_date: string
+    end_date: string
+  } | null
+}
+
+/**
+ * Cria um Preapproval (trial + assinatura recorrente) no MP.
+ * O cartão é cadastrado mas NÃO cobrado até start_date (trial de 7 dias).
+ */
+export async function createPreapproval(opts: {
+  tenantId: string
+  planSlug: string
+  planName: string
+  amountCents: number
+  payerEmail: string
+  backUrl: string
+}): Promise<{ id: string; init_point: string }> {
+  const startDate = new Date()
+  startDate.setDate(startDate.getDate() + 7)
+
+  const res = await fetch(`${BASE}/preapproval`, {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify({
+      reason: `Assinatura ${opts.planName} — AFT Barber`,
+      external_reference: opts.tenantId,
+      payer_email: opts.payerEmail,
+      back_url: opts.backUrl,
+      status: "pending",
+      auto_recurring: {
+        frequency: 1,
+        frequency_type: "months",
+        transaction_amount: opts.amountCents / 100,
+        currency_id: "BRL",
+        start_date: startDate.toISOString(),
+      },
+    }),
+  })
+
+  if (!res.ok) {
+    const err = await res.json()
+    throw new Error(`MP createPreapproval error: ${JSON.stringify(err)}`)
+  }
+
+  const data = await res.json()
+  return { id: data.id as string, init_point: data.init_point as string }
+}
+
+/** Busca detalhes de um preapproval por ID */
+export async function getPreapproval(preapprovalId: string): Promise<MpPreapproval> {
+  const res = await fetch(`${BASE}/preapproval/${preapprovalId}`, {
+    headers: headers(),
+  })
+  if (!res.ok) throw new Error(`MP getPreapproval error: ${res.status}`)
+  return res.json() as Promise<MpPreapproval>
+}
+
 /** Valida a assinatura do webhook (header x-signature) */
 export function validateWebhookSignature(
   rawBody: string,

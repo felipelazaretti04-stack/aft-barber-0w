@@ -45,6 +45,7 @@ import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { formatBRL, formatDateBR } from "@/lib/format"
 import { createCheckoutAction, cancelSubscriptionAction } from "@/app/actions/billing"
+import { useSearchParams } from "next/navigation"
 
 interface BillingInfo {
   out_plan_slug: string
@@ -88,24 +89,35 @@ interface Props {
 }
 
 const PLAN_FEATURES: Record<string, string[]> = {
+  starter: [
+    "1 profissional",
+    "Até 10 serviços",
+    "200 agendamentos/mês",
+    "Agendamento público",
+    "Página da barbearia",
+  ],
   free: [
     "1 profissional",
-    "Até 5 serviços",
+    "Até 10 serviços",
+    "200 agendamentos/mês",
     "Agendamento público",
     "Página da barbearia",
   ],
   pro: [
     "Até 5 profissionais",
     "Até 30 serviços",
+    "1.000 agendamentos/mês",
     "Notificações via WhatsApp",
-    "Analytics avançado",
-    "Página personalizada",
+    "Relatórios avançados",
+    "PDV completo",
+    "Lista de espera",
   ],
   premium: [
     "Profissionais ilimitados",
     "Serviços ilimitados",
-    "Notificações via WhatsApp",
-    "Analytics avançado",
+    "Agendamentos ilimitados",
+    "Campanhas de marketing",
+    "Programa de fidelidade",
     "Branding personalizado",
     "Suporte prioritário",
   ],
@@ -115,8 +127,10 @@ export function PlanPageClient({ tenantId, billing, plans, invoices }: Props) {
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false)
   const [upgradeSlug, setUpgradeSlug] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
+  const searchParams = useSearchParams()
+  const reason = searchParams.get("reason")
 
-  const currentSlug = billing?.out_plan_slug ?? "free"
+  const currentSlug = billing?.out_plan_slug ?? "starter"
   const currentPlan = plans.find((p) => p.slug === currentSlug)
 
   const periodEnd = billing?.out_current_period_end
@@ -175,8 +189,52 @@ export function PlanPageClient({ tenantId, billing, plans, invoices }: Props) {
   }
   const statusMeta = statusLabel[billing?.out_status ?? "trial"] ?? statusLabel["trial"]
 
+  const trialEndDate = billing?.out_trial_ends_at
+    ? new Date(billing.out_trial_ends_at)
+    : null
+  const trialDaysLeft = trialEndDate
+    ? Math.max(0, Math.ceil((trialEndDate.getTime() - Date.now()) / 86_400_000))
+    : null
+
   return (
     <>
+      {/* Banner: cartão pendente */}
+      {reason === "pending_payment" && (
+        <Alert className="border-yellow-500/40 bg-yellow-50 text-yellow-900 dark:bg-yellow-950/30 dark:text-yellow-200">
+          <CreditCard className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+          <AlertTitle>Cadastre um cartao para continuar</AlertTitle>
+          <AlertDescription className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <span>Sua conta esta em trial. Adicione um cartao para garantir o acesso apos o periodo gratuito.</span>
+            <Button size="sm" variant="outline" className="shrink-0 border-yellow-500 text-yellow-800 hover:bg-yellow-100 dark:text-yellow-200 dark:hover:bg-yellow-900/50" asChild>
+              <a href="/onboarding/cartao">Cadastrar cartao</a>
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Banner: conta bloqueada */}
+      {reason === "blocked" && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Conta bloqueada</AlertTitle>
+          <AlertDescription>
+            Seu periodo de acesso encerrou sem um pagamento valido. Escolha um plano abaixo para reativar sua conta.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Banner: dias restantes de trial (quando ok + trialing) */}
+      {!reason && trialDaysLeft !== null && trialDaysLeft <= 7 && trialDaysLeft > 0 && (
+        <Alert className="border-primary/30 bg-primary/5">
+          <Calendar className="h-4 w-4 text-primary" />
+          <AlertTitle>Trial ativo</AlertTitle>
+          <AlertDescription>
+            Voce tem <strong>{trialDaysLeft} {trialDaysLeft === 1 ? "dia" : "dias"}</strong> restantes de periodo gratuito.
+            {trialEndDate && ` Primeira cobrança em ${formatDateBR(trialEndDate)}.`}
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Plano atual */}
       <Card className="border-primary/40 bg-primary/5">
         <CardHeader>

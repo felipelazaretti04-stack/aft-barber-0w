@@ -9,7 +9,7 @@ import type {
 } from "./schema"
 import { DEFAULT_SCHEDULES, DEFAULT_SERVICES } from "./schema"
 
-export type OnboardingStep = "business" | "services" | "schedules" | "review"
+export type OnboardingStep = "plan" | "business" | "services" | "schedules" | "review"
 
 interface OnboardingState {
   step: OnboardingStep
@@ -30,8 +30,8 @@ interface OnboardingState {
 }
 
 const initialState = {
-  step: "business" as OnboardingStep,
-  planSlug: "free",
+  step: "plan" as OnboardingStep,
+  planSlug: "",
   business: {},
   services: DEFAULT_SERVICES,
   schedules: DEFAULT_SCHEDULES,
