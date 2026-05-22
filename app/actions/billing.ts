@@ -135,11 +135,17 @@ export async function getBillingInfoAction() {
     .rpc("get_billing_info", { p_tenant_id: tenantRow.out_tenant_id })
     .single()
 
-  const { data: plans } = await supabase
+  const { data: plans, error: plansError } = await supabase
     .from("plans")
     .select("id, name, slug, price_cents, description, active")
     .eq("active", true)
     .order("price_cents")
+
+  if (plansError) {
+    console.error("[v0] getBillingInfoAction plans error:", plansError.message, plansError.code)
+  } else {
+    console.log("[v0] getBillingInfoAction plans count:", plans?.length ?? 0)
+  }
 
   const { data: invoices } = await supabase
     .from("invoices")

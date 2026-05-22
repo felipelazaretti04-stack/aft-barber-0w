@@ -7,8 +7,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Suspense, useState } from "react"
+import { Suspense, useEffect, useState } from "react"
 import { Scissors } from "lucide-react"
+import { toast } from "sonner"
 
 function LoginForm() {
   const [email, setEmail] = useState("")
@@ -19,22 +20,26 @@ function LoginForm() {
   const params = useSearchParams()
   const next = params.get("next") || "/dashboard"
 
+  useEffect(() => {
+    if (params.get("password_updated") === "1") {
+      toast.success("Senha atualizada com sucesso! Faça login para continuar.")
+    }
+  }, [params])
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     const supabase = createClient()
     setIsLoading(true)
     setError(null)
 
-    try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password })
-      if (error) throw error
-      router.push(next)
-      router.refresh()
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Erro ao entrar")
-    } finally {
-      setIsLoading(false)
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    setIsLoading(false)
+    if (error) {
+      setError("E-mail ou senha inválidos.")
+      return
     }
+    router.push(next)
+    router.refresh()
   }
 
   return (

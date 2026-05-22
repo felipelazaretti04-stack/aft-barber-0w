@@ -342,16 +342,16 @@ export function PlanPageClient({ tenantId, billing, plans, invoices }: Props) {
                   className={cn(
                     "relative rounded-xl border p-6 transition-shadow",
                     isCurrent && "border-primary bg-primary/5 ring-2 ring-primary ring-offset-2",
-                    plan.slug === "premium" && !isCurrent && "border-chart-3/60",
+                    plan.slug === "pro" && !isCurrent && "border-chart-3/60 shadow-md",
                   )}
                 >
                   {isCurrent && (
                     <Badge className="absolute -top-3 left-4 bg-primary">Plano atual</Badge>
                   )}
-                  {plan.slug === "premium" && !isCurrent && (
+                  {plan.slug === "pro" && !isCurrent && (
                     <Badge className="absolute -top-3 left-4 bg-chart-3 text-white">
                       <Sparkles className="mr-1 h-3 w-3" />
-                      Recomendado
+                      Mais popular
                     </Badge>
                   )}
 
