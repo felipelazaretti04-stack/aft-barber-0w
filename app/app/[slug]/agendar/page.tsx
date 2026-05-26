@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic"
 
 interface Props {
   params: Promise<{ slug: string }>
-  searchParams: Promise<{ service?: string; barber?: string }>
+  searchParams: Promise<{ service?: string; barber?: string; serviceId?: string; profId?: string; slot?: string }>
 }
 
 export default async function BookingPage({ params, searchParams }: Props) {

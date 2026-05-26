@@ -6,11 +6,36 @@ import {
   getOrCreateMpPlan,
   createCheckoutUrl,
   cancelMpSubscription,
+  createPreapproval,
+  getPreapproval,
 } from "@/lib/mercadopago"
+import { PLAN_META } from "@/lib/features"
 
 // ----------------------------------------------------------------
 // Helpers
 // ----------------------------------------------------------------
+export interface BillingInfo {
+  out_plan_slug: string
+  out_plan_name: string
+  out_price_cents: number
+  out_status: string
+  out_trial_ends_at: string | null
+  out_current_period_end: string | null
+  out_cancel_at_period_end: boolean
+  out_mp_subscription_id: string | null
+  out_barbers_count: number
+  out_barbers_limit: number | null
+  out_services_count: number
+  out_services_limit: number | null
+}
+
+interface TenantRow {
+  out_tenant_id: string
+  out_tenant_slug: string
+  out_tenant_name: string
+  out_plan_slug: string
+}
+
 async function requireTenant() {
   const supabase = await createClient()
   const {
@@ -21,7 +46,7 @@ async function requireTenant() {
   const { data } = await supabase.rpc("get_my_tenant").single()
   if (!data) throw new Error("Tenant não encontrado")
 
-  return { supabase, user, tenant: data }
+  return { supabase, user, tenant: data as unknown as TenantRow }
 }
 
 // ----------------------------------------------------------------
@@ -101,18 +126,26 @@ export async function getBillingInfoAction() {
   } = await supabase.auth.getUser()
   if (!user) return null
 
-  const { data: tenantRow } = await supabase.rpc("get_my_tenant").single()
-  if (!tenantRow) return null
+  const { data: tenantRaw } = await supabase.rpc("get_my_tenant").single()
+  if (!tenantRaw) return null
+
+  const tenantRow = tenantRaw as unknown as TenantRow
 
   const { data: billing } = await supabase
     .rpc("get_billing_info", { p_tenant_id: tenantRow.out_tenant_id })
     .single()
 
-  const { data: plans } = await supabase
+  const { data: plans, error: plansError } = await supabase
     .from("plans")
     .select("id, name, slug, price_cents, description, active")
     .eq("active", true)
     .order("price_cents")
+
+  if (plansError) {
+    console.error("[v0] getBillingInfoAction plans error:", plansError.message, plansError.code)
+  } else {
+    console.log("[v0] getBillingInfoAction plans count:", plans?.length ?? 0)
+  }
 
   const { data: invoices } = await supabase
     .from("invoices")
@@ -123,8 +156,64 @@ export async function getBillingInfoAction() {
 
   return {
     tenantId: tenantRow.out_tenant_id,
-    billing,
+    billing: billing as BillingInfo | null,
     plans: plans ?? [],
     invoices: invoices ?? [],
+  }
+}
+
+// ----------------------------------------------------------------
+// Action: retorna (ou recria) o init_point do preapproval do tenant
+// Usado pela página /onboarding/cartao
+// ----------------------------------------------------------------
+export async function createCheckoutFromTenantAction(
+  tenantId: string,
+  payerEmail: string,
+): Promise<{ initPoint?: string; error?: string }> {
+  try {
+    const supabase = await createClient()
+
+    const { data: tenantRow } = await supabase
+      .from("tenants")
+      .select("mp_preapproval_id, plan_id, plans(name, price_cents, slug)")
+      .eq("id", tenantId)
+      .single()
+
+    const planName  = (tenantRow?.plans as { name?: string } | null)?.name ?? "Starter"
+    const priceCents = (tenantRow?.plans as { price_cents?: number } | null)?.price_cents ?? 7990
+    const planSlug  = (tenantRow?.plans as { slug?: string } | null)?.slug ?? "starter"
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
+
+    // Tenta reutilizar preapproval existente
+    if (tenantRow?.mp_preapproval_id) {
+      try {
+        const existing = await getPreapproval(tenantRow.mp_preapproval_id)
+        if (existing.status === "pending" && existing.init_point) {
+          return { initPoint: existing.init_point }
+        }
+      } catch {
+        // preapproval expirado — recria abaixo
+      }
+    }
+
+    // Cria novo preapproval
+    const preapproval = await createPreapproval({
+      tenantId,
+      planSlug,
+      planName,
+      amountCents: priceCents,
+      payerEmail,
+      backUrl: `${appUrl}/onboarding/sucesso`,
+    })
+
+    await supabase
+      .from("tenants")
+      .update({ mp_preapproval_id: preapproval.id })
+      .eq("id", tenantId)
+
+    return { initPoint: preapproval.init_point }
+  } catch (err) {
+    console.error("[v0] createCheckoutFromTenantAction error:", err)
+    return { error: "Erro ao gerar link de pagamento. Tente novamente." }
   }
 }

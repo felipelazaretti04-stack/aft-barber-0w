@@ -2,7 +2,8 @@
 
 import Link from "next/link"
 import { Lock } from "lucide-react"
-import { Button, type ButtonProps } from "@/components/ui/button"
+import { Button } from "@/components/ui/button"
+import type { VariantProps } from "class-variance-authority"
 import {
   Tooltip,
   TooltipContent,
@@ -13,7 +14,7 @@ import { useFeature } from "@/lib/features/context"
 import type { FeatureKey } from "@/lib/features"
 import { cn } from "@/lib/utils"
 
-interface FeatureButtonProps extends ButtonProps {
+interface FeatureButtonProps extends React.ComponentPropsWithoutRef<typeof Button> {
   feature: FeatureKey
   featureLabel?: string
   children: React.ReactNode

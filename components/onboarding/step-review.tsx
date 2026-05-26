@@ -66,8 +66,13 @@ export function StepReview({ userEmail, onComplete }: Props) {
       })
 
       if (result.success && result.slug) {
-        toast.success("Negócio criado com sucesso!")
-        onComplete(result.slug)
+        toast.success("Negócio criado! Agora configure o pagamento.")
+        // Se o MP retornou init_point, redireciona direto; caso contrário vai para /cartao
+        if (result.mpInitPoint) {
+          window.location.href = result.mpInitPoint
+        } else {
+          onComplete(result.slug)
+        }
       } else {
         toast.error(result.error || "Erro ao criar negócio")
       }
@@ -171,10 +176,15 @@ export function StepReview({ userEmail, onComplete }: Props) {
         <div className="flex items-center justify-between">
           <div>
             <p className="font-semibold">
-              Plano: {planSlug === "free" ? "Gratuito" : planSlug.toUpperCase()}
+              Plano:{" "}
+              {planSlug === "starter" || planSlug === "free"
+                ? "Starter"
+                : planSlug === "pro"
+                ? "Pro"
+                : "Premium"}
             </p>
             <p className="text-sm text-muted-foreground">
-              14 dias de teste grátis
+              7 dias gratuitos — cartao obrigatorio, sem cobranca agora
             </p>
           </div>
           <Rocket className="h-8 w-8 text-primary" />

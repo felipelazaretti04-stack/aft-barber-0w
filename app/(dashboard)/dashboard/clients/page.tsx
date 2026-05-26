@@ -16,10 +16,12 @@ import { formatBRL, formatRelativeBR } from "@/lib/format"
 import type { ClientTag } from "@/lib/types"
 
 const tagConfig: Record<ClientTag, { label: string; className: string; icon?: React.ComponentType<{ className?: string }> }> = {
-  vip: { label: "VIP", className: "bg-amber-100 text-amber-800 border-amber-200", icon: Star },
-  inativo: { label: "Inativo", className: "bg-zinc-100 text-zinc-700 border-zinc-200" },
-  novo: { label: "Novo", className: "bg-blue-100 text-blue-800 border-blue-200" },
-  aniversariante: { label: "Aniversariante", className: "bg-pink-100 text-pink-800 border-pink-200", icon: Cake },
+  vip:            { label: "VIP",           className: "bg-amber-100 text-amber-800 border-amber-200", icon: Star },
+  inativo:        { label: "Inativo",       className: "bg-zinc-100 text-zinc-700 border-zinc-200" },
+  novo:           { label: "Novo",          className: "bg-blue-100 text-blue-800 border-blue-200" },
+  aniversariante: { label: "Aniversariante",className: "bg-pink-100 text-pink-800 border-pink-200", icon: Cake },
+  blacklist:      { label: "Bloqueado",     className: "bg-red-100 text-red-800 border-red-200" },
+  trusted:        { label: "Confiavel",     className: "bg-green-100 text-green-800 border-green-200" },
 }
 
 const filterTags: ClientTag[] = ["vip", "novo", "aniversariante", "inativo"]
