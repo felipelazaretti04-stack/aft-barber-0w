@@ -154,14 +154,11 @@ export async function createPreapproval(opts: {
   payerEmail: string
   backUrl: string
 }): Promise<{ id: string; init_point: string }> {
-  const startDate = new Date()
-  startDate.setDate(startDate.getDate() + 7)
-
   const res = await fetch(`${BASE}/preapproval`, {
     method: "POST",
     headers: headers(),
     body: JSON.stringify({
-      reason: `Assinatura ${opts.planName} — AFT Barber`,
+      reason: `Assinatura ${opts.planName} - AFT Barber`,
       external_reference: opts.tenantId,
       payer_email: opts.payerEmail,
       back_url: opts.backUrl,
@@ -171,7 +168,6 @@ export async function createPreapproval(opts: {
         frequency_type: "months",
         transaction_amount: opts.amountCents / 100,
         currency_id: "BRL",
-        start_date: startDate.toISOString(),
       },
     }),
   })
@@ -184,6 +180,7 @@ export async function createPreapproval(opts: {
   const data = await res.json()
   return { id: data.id as string, init_point: data.init_point as string }
 }
+
 
 /** Busca detalhes de um preapproval por ID */
 export async function getPreapproval(preapprovalId: string): Promise<MpPreapproval> {
