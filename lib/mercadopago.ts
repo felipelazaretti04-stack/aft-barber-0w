@@ -168,6 +168,10 @@ export async function createPreapproval(opts: {
         frequency_type: "months",
         transaction_amount: opts.amountCents / 100,
         currency_id: "BRL",
+        free_trial: {
+          frequency: 7,
+          frequency_type: "days",
+        },
       },
     }),
   })
