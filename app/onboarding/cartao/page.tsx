@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { getMyTenant } from "@/app/actions/onboarding"
-import { CardSetupClient } from "@/components/onboarding/card-setup-client"
+import { CardPaymentBrick } from "@/components/onboarding/card-payment-brick"
 
 export const metadata = {
   title: "Cadastrar Cartao | AFT Barber",
@@ -29,10 +29,10 @@ export default async function CartaoPage() {
     redirect("/dashboard")
   }
 
-  // Busca mp_init_point salvo no tenant (se disponível)
+  // Busca dados do plano do tenant
   const { data: tenantRow } = await supabase
     .from("tenants")
-    .select("mp_preapproval_id, name, plan_id, plans(name, price_cents, slug)")
+    .select("name, plan_id, plans(name, price_cents, slug)")
     .eq("id", tenant.out_tenant_id)
     .single()
 
@@ -42,16 +42,14 @@ export default async function CartaoPage() {
     (tenantRow?.plans as { price_cents?: number } | null)?.price_cents ?? 7990
   const planSlug =
     (tenantRow?.plans as { slug?: string } | null)?.slug ?? "starter"
-  const hasPreapproval = !!tenantRow?.mp_preapproval_id
 
   return (
-    <CardSetupClient
+    <CardPaymentBrick
       tenantId={tenant.out_tenant_id}
       tenantName={tenant.out_tenant_name}
       planName={planName}
       planSlug={planSlug}
       priceCents={priceCents}
-      hasPreapproval={hasPreapproval}
       userEmail={user.email ?? ""}
     />
   )

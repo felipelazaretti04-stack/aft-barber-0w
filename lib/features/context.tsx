@@ -40,7 +40,7 @@ export function useFeature(key: FeatureKey): UseFeatureResult {
       limit: 0,
       currentUsage: 0,
       isAtLimit: true,
-      plan: "free",
+      plan: "starter",
     }
   }
   const f = ctx.features[key]
@@ -58,5 +58,5 @@ export function useFeature(key: FeatureKey): UseFeatureResult {
 
 export function usePlan(): PlanSlug {
   const ctx = useContext(FeaturesContext)
-  return ctx?.plan ?? "free"
+  return ctx?.plan ?? "starter"
 }
