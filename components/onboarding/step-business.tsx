@@ -86,7 +86,7 @@ export function StepBusiness() {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="space-y-4">
         <div>
-          <Label htmlFor="name">Nome do Estabelecimento *</Label>
+          <Label htmlFor="name">Nome da Barbearia *</Label>
           <Input
             id="name"
             placeholder="Ex: Barbearia do João"
