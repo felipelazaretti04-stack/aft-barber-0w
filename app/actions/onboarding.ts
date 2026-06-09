@@ -3,7 +3,8 @@
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
 import type { OnboardingPayload } from "@/lib/onboarding/schema"
-
+import { createPreapproval } from "@/lib/mercadopago"
+import { PLAN_META } from "@/lib/features"
 
 export async function checkSlugAvailability(slug: string): Promise<boolean> {
   const supabase = await createClient()
@@ -24,6 +25,7 @@ export async function completeOnboarding(
   success: boolean
   tenantId?: string
   slug?: string
+  mpInitPoint?: string
   error?: string
 }> {
   const supabase = await createClient()
@@ -79,11 +81,42 @@ export async function completeOnboarding(
   const tenantId: string = result.out_tenant_id
   const slug: string = result.out_tenant_slug
 
+  // Busca e-mail do usuário autenticado para o preapproval
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  let mpInitPoint: string | undefined
+
+  try {
+    const planMeta = PLAN_META[planSlug as keyof typeof PLAN_META]
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
+
+    const preapproval = await createPreapproval({
+      tenantId,
+      planSlug,
+      planName: planMeta?.name ?? planSlug,
+      amountCents: planMeta?.price_cents ?? 7990,
+      payerEmail: user?.email ?? "",
+      backUrl: `${appUrl}/onboarding/sucesso`,
+    })
+
+    // Salva mp_preapproval_id no tenant
+    await supabase
+      .from("tenants")
+      .update({ mp_preapproval_id: preapproval.id })
+      .eq("id", tenantId)
+
+    mpInitPoint = preapproval.init_point
+  } catch (err) {
+    // Falha no MP não deve impedir conclusão do onboarding
+    console.error("[v0] createPreapproval error:", err)
+  }
+
   revalidatePath("/dashboard")
   revalidatePath("/onboarding")
 
-  // Retorna sem mpInitPoint — o checkout agora é feito via CardPayment Brick em /onboarding/cartao
-  return { success: true, tenantId, slug }
+  return { success: true, tenantId, slug, mpInitPoint }
 }
 
 export async function getMyTenant() {

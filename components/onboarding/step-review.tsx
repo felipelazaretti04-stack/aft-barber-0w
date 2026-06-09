@@ -67,7 +67,12 @@ export function StepReview({ userEmail, onComplete }: Props) {
 
       if (result.success && result.slug) {
         toast.success("Negócio criado! Agora configure o pagamento.")
-        onComplete(result.slug)
+        // Se o MP retornou init_point, redireciona direto; caso contrário vai para /cartao
+        if (result.mpInitPoint) {
+          window.location.href = result.mpInitPoint
+        } else {
+          onComplete(result.slug)
+        }
       } else {
         toast.error(result.error || "Erro ao criar negócio")
       }
