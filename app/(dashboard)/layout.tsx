@@ -45,7 +45,7 @@ export default async function DashboardLayout({
   }
 
   return (
-    <FeaturesProvider plan={plan} features={features} usage={usage}>
+    <FeaturesProvider plan={plan} features={features} usage={usage} tenantId={tenant?.id ?? ""}>
       <div className="flex min-h-screen bg-muted/30">
         <DashboardSidebar />
         <div className="flex-1 min-w-0 flex flex-col">

@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
 import { barbers, clients, getBarber, getClient, getService, services } from "@/lib/mock-data"
 import { formatBRL, formatDateBR, formatTimeBR } from "@/lib/format"
+import { useTenantId } from "@/lib/features/context"
 import { ptBR } from "date-fns/locale"
 import { toast } from "sonner"
 import type { Appointment } from "@/lib/types"
@@ -35,6 +36,7 @@ for (let h = 9; h < 20; h++) {
 }
 
 export function NewAppointmentDialog({ open, onOpenChange, initialBarberId, initialStart, onCreate }: Props) {
+  const tenantId = useTenantId()
   const [step, setStep] = useState(0)
   const [clientId, setClientId] = useState<string>("")
   const [serviceId, setServiceId] = useState<string>("")
@@ -77,7 +79,7 @@ export function NewAppointmentDialog({ open, onOpenChange, initialBarberId, init
     const end = new Date(start.getTime() + service.duration_min * 60000)
     const apt: Appointment = {
       id: `apt_${Date.now()}`,
-      tenant_id: "tenant_1",
+      tenant_id: tenantId,
       client_id: client.id,
       barber_id: barber.id,
       service_id: service.id,

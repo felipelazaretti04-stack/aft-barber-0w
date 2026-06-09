@@ -14,6 +14,7 @@ import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import { barbers } from "@/lib/mock-data"
 import type { Service, ServiceCategory } from "@/lib/types"
+import { useTenantId } from "@/lib/features/context"
 
 interface Props {
   open: boolean
@@ -23,6 +24,7 @@ interface Props {
 }
 
 export function ServiceDialog({ open, onOpenChange, service, onSave }: Props) {
+  const tenantId = useTenantId()
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
   const [category, setCategory] = useState<ServiceCategory>("cabelo")
@@ -56,7 +58,7 @@ export function ServiceDialog({ open, onOpenChange, service, onSave }: Props) {
     e.preventDefault()
     const svc: Service = {
       id: service?.id ?? `svc_${Date.now()}`,
-      tenant_id: "tenant_1",
+      tenant_id: tenantId,
       name,
       description,
       category,
